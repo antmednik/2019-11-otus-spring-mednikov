@@ -25,4 +25,4 @@ hs_err_pid*
 .gradle
 
 homework-01/out/*
-homework-01/gradle/*
+homework-01/gradle/wrapper/gradle-wrapper.jar
