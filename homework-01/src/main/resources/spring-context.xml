@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="questionCollectionFactory" class="ru.otus.homework.hw01.service.question.csv.CsvBasedQuestionCollectionFactory">
+        <constructor-arg name="questionFactory" ref="questionFactory"/>
+        <constructor-arg name="questionsFilePath" value="questions.csv"/>
+    </bean>
+
+    <bean id="questionFactory" class="ru.otus.homework.hw01.service.question.csv.StringBasedOpenQuestionFactory">
+    </bean>
+
+    <bean id="testRunner" class="ru.otus.homework.hw01.service.test.runner.LinearTestRunner">
+        <constructor-arg name="questionCollectionFactory" ref="questionCollectionFactory" />
+    </bean>
+
+    <bean id="consoleTestUI"  class="ru.otus.homework.hw01.service.test.ui.ConsoleTestUI">
+        <constructor-arg name="testRunner" ref="testRunner" />
+    </bean>
+
+</beans>
