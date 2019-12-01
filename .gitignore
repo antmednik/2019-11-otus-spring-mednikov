@@ -25,4 +25,5 @@ hs_err_pid*
 .idea
 .gradle
 homework-01/out/*
+homework-01/build/*
 !homework-01/gradle/wrapper/gradle-wrapper.jar
