@@ -17,7 +17,7 @@ public class I18nOpenQuestionFactory implements QuestionFactory {
     private final Locale locale;
 
     public I18nOpenQuestionFactory(MessageSource questionsMessageSource,
-                                   @Value("${questions.i18n.language.tag}") String languageTag) {
+                                   @Value("${i18n.language.tag}") String languageTag) {
         this.questionsMessageSource = questionsMessageSource;
         this.locale = Locale.forLanguageTag(languageTag);
     }
