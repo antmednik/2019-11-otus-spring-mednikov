@@ -1,0 +1,17 @@
+questions:
+  file:
+    path: questions.csv
+
+i18n:
+  language:
+    tag: ru-RU
+    #tag: en
+
+spring:
+  banner:
+    image:
+      location: banner.png
+
+  messages:
+    basename: i18n/questions,i18n/console_test_ui
+    encoding: UTF-8
