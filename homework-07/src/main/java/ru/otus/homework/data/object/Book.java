@@ -21,4 +21,9 @@ public class Book {
     private List<Author> authors;
 
     private List<Genre> genres;
+
+    public Book(UUID id, String title) {
+        this.id = id;
+        this.title = title;
+    }
 }

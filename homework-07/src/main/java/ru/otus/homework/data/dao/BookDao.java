@@ -13,7 +13,7 @@ public interface BookDao {
 
     List<Book> books();
 
-    void updateTitle(UUID bookId, String newTitle);
+    boolean updateTitle(UUID bookId, String newTitle);
 
-    void deleteById(UUID id);
+    boolean deleteById(UUID id);
 }
