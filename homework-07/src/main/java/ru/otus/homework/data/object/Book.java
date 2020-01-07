@@ -5,10 +5,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@RequiredArgsConstructor
 @Getter
 @Setter
 @ToString
@@ -22,8 +22,14 @@ public class Book {
 
     private List<Genre> genres;
 
+    public Book(UUID id){
+        this(id, null);
+    }
+
     public Book(UUID id, String title) {
         this.id = id;
         this.title = title;
+        this.authors = new ArrayList<>();
+        this.genres = new ArrayList<>();
     }
 }

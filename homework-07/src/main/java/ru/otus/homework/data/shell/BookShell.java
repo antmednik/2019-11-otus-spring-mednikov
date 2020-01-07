@@ -70,6 +70,6 @@ public class BookShell {
 
     @ShellMethod(key = "book-delete", value = "delete book")
     public void deleteBook(UUID bookId) {
-        bookService.deleteById(bookId);
+        bookService.deleteBookById(bookId);
     }
 }

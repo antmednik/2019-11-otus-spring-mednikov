@@ -20,9 +20,9 @@ public class AuthorStorageService {
         return authorDaoJdbc.authors();
     }
 
-    public void save(String name) {
+    public Author save(String name) {
         Author author = new Author(UUID.randomUUID());
         author.setName(name);
-        authorDaoJdbc.save(author);
+        return authorDaoJdbc.save(author);
     }
 }

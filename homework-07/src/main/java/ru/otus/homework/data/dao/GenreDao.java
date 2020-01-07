@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface GenreDao {
 
-    void save(Genre genre);
+    Genre save(Genre genre);
 
     List<Genre> genres();
 

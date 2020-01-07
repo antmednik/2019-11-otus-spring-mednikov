@@ -18,7 +18,7 @@ public class GenreStorageService {
         return genreDaoJdbc.genres();
     }
 
-    public void save(String name) {
-        genreDaoJdbc.save(new Genre(UUID.randomUUID(), name));
+    public Genre save(String name) {
+        return genreDaoJdbc.save(new Genre(UUID.randomUUID(), name));
     }
 }

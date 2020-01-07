@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface AuthorDao {
 
-    void save(Author author);
+    Author save(Author author);
 
     List<Author> authors();
 

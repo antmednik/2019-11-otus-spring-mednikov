@@ -1,6 +1,7 @@
 package ru.otus.homework.data.dao.jdbc;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
@@ -24,9 +25,13 @@ public class GenreDaoJdbc implements GenreDao {
     private final NamedParameterJdbcOperations jdbc;
 
     @Override
-    public void save(Genre genre) {
+    public Genre save(Genre genre) {
         jdbc.update("INSERT INTO genre (id, name) VALUES(:id, :name)",
                 Map.of("id", genre.getId(), "name", genre.getName()));
+
+        return genreById(genre.getId()).orElseThrow(() ->
+                new DataRetrievalFailureException(
+                        String.format("Unable to load genre by id '%s'", genre.getId())));
     }
 
     @Override

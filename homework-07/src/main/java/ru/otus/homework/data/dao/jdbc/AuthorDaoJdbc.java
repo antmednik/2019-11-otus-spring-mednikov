@@ -1,6 +1,7 @@
 package ru.otus.homework.data.dao.jdbc;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
@@ -24,9 +25,13 @@ public class AuthorDaoJdbc implements AuthorDao {
     private final NamedParameterJdbcOperations jdbc;
 
     @Override
-    public void save(Author author) {
+    public Author save(Author author) {
         jdbc.update("INSERT INTO author (id, name) VALUES(:id, :name)",
                 Map.of("id", author.getId(), "name", author.getName()));
+
+        return authorById(author.getId()).orElseThrow(() ->
+                new DataRetrievalFailureException(
+                        String.format("Unable to load author by id '%s'", author.getId())));
     }
 
     @Override
