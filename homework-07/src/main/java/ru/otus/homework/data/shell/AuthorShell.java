@@ -6,9 +6,7 @@ import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 import ru.otus.homework.data.object.Author;
-import ru.otus.homework.data.object.Genre;
 import ru.otus.homework.data.service.AuthorStorageService;
-import ru.otus.homework.data.service.GenreStorageService;
 
 import java.util.List;
 

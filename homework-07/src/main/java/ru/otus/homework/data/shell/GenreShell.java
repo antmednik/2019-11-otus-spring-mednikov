@@ -5,7 +5,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
-import ru.otus.homework.data.object.Book;
 import ru.otus.homework.data.object.Genre;
 import ru.otus.homework.data.service.GenreStorageService;
 

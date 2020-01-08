@@ -8,9 +8,11 @@ import org.springframework.shell.standard.ShellOption;
 import ru.otus.homework.data.object.Book;
 import ru.otus.homework.data.service.BookStorageService;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @ShellComponent
 @RequiredArgsConstructor
@@ -34,42 +36,39 @@ public class BookShell {
     }
 
     @ShellMethod(key = "book-save", value = "save new book")
-    public void saveBook(@ShellOption("--title") String title) {
-        bookService.save(title);
-    }
+    public void saveBook(@ShellOption("--title") String title,
+                         @ShellOption(value = "--authors-ids",
+                                 help = "example value: <uuid_1>,<uuid_2>,<uuid_3>,...")
+                         String rawAuthorsIds,
+                         @ShellOption(value = "--genres-ids",
+                                 help = "example value: <uuid_1>,<uuid_2>,<uuid_3>,...")
+                         String rawGenresIds) {
 
-    @ShellMethod(key = "book-add-author", value = "connect book with author")
-    public void addBookAuthorConnection(@ShellOption("--book-id") UUID bookId,
-                                        @ShellOption("--author-id") UUID authorId) {
-        bookService.saveBookAuthorConnection(bookId, authorId);
-    }
-
-    @ShellMethod(key = "book-delete-author", value = "disconnect book with author")
-    public void deleteBookAuthorConnection(@ShellOption("--book-id") UUID bookId,
-                                        @ShellOption("--author-id") UUID authorId) {
-        bookService.deleteBookAuthorConnection(bookId, authorId);
-    }
-
-    @ShellMethod(key = "book-add-genre", value = "connect book with genre")
-    public void addBookGenreConnection(@ShellOption("--book-id") UUID bookId,
-                                       @ShellOption("--genre-id") UUID genreId) {
-        bookService.saveBookGenreConnection(bookId, genreId);
-    }
-
-    @ShellMethod(key = "book-delete-genre", value = "disconnect book with genre")
-    public void deleteBookGenreConnection(@ShellOption("--book-id") UUID bookId,
-                                       @ShellOption("--genre-id") UUID genreId) {
-        bookService.deleteBookGenreConnection(bookId, genreId);
+        bookService.save(title, parsedUuidList(rawAuthorsIds), parsedUuidList(rawGenresIds));
     }
 
     @ShellMethod(key = "book-edit-title", value = "edit book title")
     public void editBookTitle(@ShellOption("--book-id") UUID bookId,
-                              @ShellOption("--new-title") String newTitle) {
-        bookService.updateTitle(bookId, newTitle);
+                              @ShellOption("--new-title") String newTitle,
+                              @ShellOption(value = "--authors-ids",
+                                      help = "example value: <uuid_1>,<uuid_2>,<uuid_3>,...")
+                                          String rawAuthorsIds,
+                              @ShellOption(value = "--genres-ids",
+                                      help = "example value: <uuid_1>,<uuid_2>,<uuid_3>,...")
+                                          String rawGenresIds) {
+        bookService.update(bookId, newTitle,
+                parsedUuidList(rawAuthorsIds),
+                parsedUuidList(rawGenresIds));
     }
 
     @ShellMethod(key = "book-delete", value = "delete book")
     public void deleteBook(UUID bookId) {
         bookService.deleteBookById(bookId);
+    }
+
+    private List<UUID> parsedUuidList(String rawUuidList) {
+        return Arrays.stream(rawUuidList.split(","))
+                .map(UUID::fromString)
+                .collect(Collectors.toList());
     }
 }

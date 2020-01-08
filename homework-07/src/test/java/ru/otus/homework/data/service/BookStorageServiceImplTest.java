@@ -9,7 +9,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.otus.homework.data.object.Author;
 import ru.otus.homework.data.object.Book;
 import ru.otus.homework.data.object.Genre;
+import ru.otus.homework.data.service.impl.BookStorageServiceImpl;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,10 +21,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-public class BookStorageServiceTest {
+public class BookStorageServiceImplTest {
 
     @Autowired
-    private BookStorageService bookStorageService;
+    private BookStorageServiceImpl bookStorageService;
 
     @Autowired
     private GenreStorageService genreStorageService;
@@ -32,7 +34,8 @@ public class BookStorageServiceTest {
 
     @Test
     public void whenBookWithGenresAndAuthorsSavedThenFullBookDataLoaded() {
-        Book book = bookStorageService.save(UUID.randomUUID().toString());
+        Book book = bookStorageService.save(UUID.randomUUID().toString(),
+                Collections.emptyList(), Collections.emptyList());
 
         Optional<Book> storedBookWrapper = bookStorageService.bookById(book.getId());
         assertThat(storedBookWrapper).isNotEmpty();
@@ -48,12 +51,9 @@ public class BookStorageServiceTest {
         Author author1 = authorStorageService.save(UUID.randomUUID().toString());
         Author author2 = authorStorageService.save(UUID.randomUUID().toString());
 
-        bookStorageService.saveBookGenreConnection(book.getId(), genre1.getId());
-        bookStorageService.saveBookGenreConnection(book.getId(), genre2.getId());
-        bookStorageService.saveBookGenreConnection(book.getId(), genre3.getId());
-
-        bookStorageService.saveBookAuthorConnection(book.getId(), author1.getId());
-        bookStorageService.saveBookAuthorConnection(book.getId(), author2.getId());
+        bookStorageService.update(book.getId(), book.getTitle(),
+            List.of(author1.getId(), author2.getId()),
+            List.of(genre1.getId(), genre2.getId(), genre3.getId()));
 
         Optional<Book> storedFinalBookWrapper = bookStorageService.bookById(book.getId());
         assertThat(storedFinalBookWrapper).isNotEmpty();
@@ -71,33 +71,25 @@ public class BookStorageServiceTest {
 
     @Test
     public void whenBookWithGenresAndAuthorsSavedThenGenreAndAuthorDeletedAndLoadedBookDataChanged() {
-        Book book = bookStorageService.save(UUID.randomUUID().toString());
-
         Genre genre1 = genreStorageService.save(UUID.randomUUID().toString());
         Genre genre2 = genreStorageService.save(UUID.randomUUID().toString());
 
         Author author1 = authorStorageService.save(UUID.randomUUID().toString());
         Author author2 = authorStorageService.save(UUID.randomUUID().toString());
 
-        bookStorageService.saveBookGenreConnection(book.getId(), genre1.getId());
-        bookStorageService.saveBookGenreConnection(book.getId(), genre2.getId());
-
-        bookStorageService.saveBookAuthorConnection(book.getId(), author1.getId());
-        bookStorageService.saveBookAuthorConnection(book.getId(), author2.getId());
-
-        book.getGenres().add(genre1);
-        book.getGenres().add(genre2);
-
-        book.getAuthors().add(author1);
-        book.getAuthors().add(author2);
+        Book book = bookStorageService.save(UUID.randomUUID().toString(),
+                List.of(author1.getId(), author2.getId()),
+                List.of(genre1.getId(), genre2.getId()));
 
         Optional<Book> storedBookWrapper = bookStorageService.bookById(book.getId());
         assertThat(storedBookWrapper).isNotEmpty();
         Book storedBook = storedBookWrapper.get();
         assertThat(storedBook).usingRecursiveComparison().isEqualTo(book);
 
-        bookStorageService.deleteBookGenreConnection(book.getId(), genre2.getId());
-        bookStorageService.deleteBookAuthorConnection(book.getId(), author1.getId());
+        boolean updated = bookStorageService.update(book.getId(), book.getTitle(),
+                List.of(author2.getId()),
+                List.of(genre1.getId()));
+        assertThat(updated).isTrue();
 
         book.setGenres(List.of(genre1));
         book.setAuthors(List.of(author2));
@@ -116,28 +108,18 @@ public class BookStorageServiceTest {
 
     @Test
     public void whenTwoBooksStoredThenTwoBooksLoaded() {
-        Book book1 = bookStorageService.save(UUID.randomUUID().toString());
-        Book book2 = bookStorageService.save(UUID.randomUUID().toString());
-
         Genre genre1 = genreStorageService.save(UUID.randomUUID().toString());
         Genre genre2 = genreStorageService.save(UUID.randomUUID().toString());
 
         Author author1 = authorStorageService.save(UUID.randomUUID().toString());
         Author author2 = authorStorageService.save(UUID.randomUUID().toString());
 
-        bookStorageService.saveBookGenreConnection(book1.getId(), genre1.getId());
-        bookStorageService.saveBookGenreConnection(book1.getId(), genre2.getId());
-        bookStorageService.saveBookGenreConnection(book2.getId(), genre1.getId());
-
-        bookStorageService.saveBookAuthorConnection(book1.getId(), author1.getId());
-        bookStorageService.saveBookAuthorConnection(book2.getId(), author1.getId());
-        bookStorageService.saveBookAuthorConnection(book2.getId(), author2.getId());
-
-        book1.setGenres(List.of(genre1, genre2));
-        book1.setAuthors(List.of(author1));
-
-        book2.setGenres(List.of(genre1));
-        book2.setAuthors(List.of(author1, author2));
+        Book book1 = bookStorageService.save(UUID.randomUUID().toString(),
+                List.of(author1.getId()),
+                List.of(genre1.getId(), genre2.getId()));
+        Book book2 = bookStorageService.save(UUID.randomUUID().toString(),
+                List.of(author1.getId(), author2.getId()),
+                List.of(genre1.getId()));
 
         List<Book> books = List.of(book1, book2);
 
@@ -153,19 +135,8 @@ public class BookStorageServiceTest {
 
     @Test
     public void whenBookStoredThenAfterDeleteNoBook() {
-        Book book = bookStorageService.save(UUID.randomUUID().toString());
-
-        Genre genre1 = genreStorageService.save(UUID.randomUUID().toString());
-        Genre genre2 = genreStorageService.save(UUID.randomUUID().toString());
-
-        Author author1 = authorStorageService.save(UUID.randomUUID().toString());
-        Author author2 = authorStorageService.save(UUID.randomUUID().toString());
-
-        bookStorageService.saveBookGenreConnection(book.getId(), genre1.getId());
-        bookStorageService.saveBookGenreConnection(book.getId(), genre2.getId());
-
-        bookStorageService.saveBookAuthorConnection(book.getId(), author1.getId());
-        bookStorageService.saveBookAuthorConnection(book.getId(), author2.getId());
+        Book book = bookStorageService.save(UUID.randomUUID().toString(),
+                Collections.emptyList(), Collections.emptyList());
 
         var storedBook = bookStorageService.bookById(book.getId());
         assertThat(storedBook).isNotEmpty();
