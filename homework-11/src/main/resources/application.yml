@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jpa:postgresql://localhost:5432/postgres
+    username: postgres
+    password: mysecretpassword
+    initialization-mode: always
+    driver-class-name: org.postgresql.Driver
+    schema: schema.sql
+    data: data.sql
