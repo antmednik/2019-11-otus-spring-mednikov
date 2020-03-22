@@ -1,9 +1,9 @@
-package ru.otus.homework.data.dao.jdbc;
+package ru.otus.homework.data.dao.jpa;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.otus.homework.data.entity.Genre;
@@ -16,16 +16,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(SpringExtension.class)
-@JdbcTest
-@Import(GenreDaoJdbc.class)
-public class GenreDaoJdbcTest {
+@DataJpaTest
+@Import(GenreRepositoryJpa.class)
+public class GenreRepositoryJpaTest {
 
     @Autowired
-    private GenreDaoJdbc genreDaoJdbc;
+    private GenreRepositoryJpa genreRepository;
 
     @Test
     public void whenSearchForNonExistingGenreThenNotFound(){
-        Optional<Genre> genre = genreDaoJdbc.genreById(UUID.randomUUID());
+        Optional<Genre> genre = genreRepository.genre(UUID.randomUUID());
         assertThat(genre).isEmpty();
     }
 
@@ -33,9 +33,9 @@ public class GenreDaoJdbcTest {
     public void whenGenreSavedThenLoadedById() {
         final UUID genreId = UUID.randomUUID();
         Genre genre = new Genre(genreId, UUID.randomUUID().toString());
-        genreDaoJdbc.save(genre);
+        genreRepository.save(genre);
 
-        Optional<Genre> storedGenre = genreDaoJdbc.genreById(genreId);
+        Optional<Genre> storedGenre = genreRepository.genre(genreId);
 
         assertThat(storedGenre).isNotEmpty();
         assertThat(storedGenre.get()).usingRecursiveComparison().isEqualTo(genre);
@@ -43,7 +43,7 @@ public class GenreDaoJdbcTest {
 
     @Test
     public void whenNoGenresThenGetAllReturnsEmptyList() {
-        List<Genre> genres = genreDaoJdbc.genres();
+        List<Genre> genres = genreRepository.genres();
         assertThat(genres).hasSize(0);
     }
 
@@ -55,10 +55,10 @@ public class GenreDaoJdbcTest {
                 new Genre(UUID.randomUUID(), UUID.randomUUID().toString()));
 
         for (Genre genre : genres){
-            genreDaoJdbc.save(genre);
+            genreRepository.save(genre);
         }
 
-        List<Genre> storedGenres = genreDaoJdbc.genres();
+        List<Genre> storedGenres = genreRepository.genres();
 
         assertThat(storedGenres).hasSize(genres.size());
         for (Genre storedGenre : storedGenres) {
@@ -73,7 +73,7 @@ public class GenreDaoJdbcTest {
 
     @Test
     public void whenSavedNullObjThenNPEThrown() {
-        assertThatThrownBy(() -> genreDaoJdbc.save(null))
+        assertThatThrownBy(() -> genreRepository.save(null))
                 .isInstanceOf(NullPointerException.class);
     }
 }

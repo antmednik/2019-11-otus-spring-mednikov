@@ -6,14 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import ru.otus.homework.data.entity.Author;
 import ru.otus.homework.data.entity.Book;
+import ru.otus.homework.data.entity.Comment;
 import ru.otus.homework.data.entity.Genre;
 import ru.otus.homework.data.service.impl.BookStorageServiceImpl;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,8 +30,11 @@ public class BookStorageServiceImplTest {
     @Autowired
     private AuthorStorageService authorStorageService;
 
+    @Autowired
+    private CommentStorageService commentStorageService;
+
     @Test
-    public void whenBookWithGenresAndAuthorsSavedThenFullBookDataLoaded() {
+    public void whenBookWithGenresAndAuthorsAndCommentsSavedThenFullBookDataLoaded() {
         Book book = bookStorageService.save(UUID.randomUUID().toString(),
                 Collections.emptyList(), Collections.emptyList());
 
@@ -50,6 +52,9 @@ public class BookStorageServiceImplTest {
         Author author1 = authorStorageService.save(UUID.randomUUID().toString());
         Author author2 = authorStorageService.save(UUID.randomUUID().toString());
 
+        Comment comment1 = commentStorageService.save(UUID.randomUUID().toString(), book);
+        Comment comment2 = commentStorageService.save(UUID.randomUUID().toString(), book);
+
         bookStorageService.update(book.getId(), book.getTitle(),
             List.of(author1.getId(), author2.getId()),
             List.of(genre1.getId(), genre2.getId(), genre3.getId()));
@@ -64,6 +69,9 @@ public class BookStorageServiceImplTest {
 
         book.getAuthors().add(author1);
         book.getAuthors().add(author2);
+
+        book.getComments().add(comment1);
+        book.getComments().add(comment2);
 
         assertThat(storedFinalBook).usingRecursiveComparison().isEqualTo(book);
     }
@@ -90,8 +98,8 @@ public class BookStorageServiceImplTest {
                 List.of(genre1.getId()));
         assertThat(updated).isTrue();
 
-        book.setGenres(List.of(genre1));
-        book.setAuthors(List.of(author2));
+        book.setGenres(Set.of(genre1));
+        book.setAuthors(Set.of(author2));
 
         Optional<Book> storedBookAfterDeletionsWrapper = bookStorageService.bookById(book.getId());
         assertThat(storedBookAfterDeletionsWrapper).isNotEmpty();
@@ -140,7 +148,8 @@ public class BookStorageServiceImplTest {
         var storedBook = bookStorageService.bookById(book.getId());
         assertThat(storedBook).isNotEmpty();
 
-        bookStorageService.deleteBookById(book.getId());
+        var deletionResult = bookStorageService.deleteBookById(book.getId());
+        assertThat(deletionResult).isTrue();
 
         var storedBookAfterDeletion = bookStorageService.bookById(book.getId());
         assertThat(storedBookAfterDeletion).isEmpty();

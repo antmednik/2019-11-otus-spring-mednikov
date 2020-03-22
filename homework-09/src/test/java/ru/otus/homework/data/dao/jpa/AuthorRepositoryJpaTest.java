@@ -1,11 +1,12 @@
-package ru.otus.homework.data.dao.jdbc;
+package ru.otus.homework.data.dao.jpa;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import ru.otus.homework.data.entity.Author;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,27 +16,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(SpringExtension.class)
-@JdbcTest
-@Import(AuthorDaoJdbc.class)
-public class AuthorDaoJdbcTest {
+@DataJpaTest
+@Import(AuthorRepositoryJpa.class)
+public class AuthorRepositoryJpaTest {
 
     @Autowired
-    private AuthorDaoJdbc authorDaoJdbc;
+    private AuthorRepositoryJpa authorRepositoryJpa;
 
     @Test
     public void whenSearchForNonExistingAuthorThenNotFound(){
-        Optional<Author> author = authorDaoJdbc.authorById(UUID.randomUUID());
+        Optional<Author> author = authorRepositoryJpa.author(UUID.randomUUID());
         assertThat(author).isEmpty();
     }
 
     @Test
     public void whenAuthorSavedThenLoadedById() {
         final UUID authorId = UUID.randomUUID();
-        Author author = new Author(authorId);
-        author.setName(UUID.randomUUID().toString());
-        authorDaoJdbc.save(author);
+        Author author = new Author(authorId, UUID.randomUUID().toString());
+        authorRepositoryJpa.save(author);
 
-        Optional<Author> storedAuthor = authorDaoJdbc.authorById(authorId);
+        Optional<Author> storedAuthor = authorRepositoryJpa.author(authorId);
 
         assertThat(storedAuthor).isNotEmpty();
         assertThat(storedAuthor.get()).usingRecursiveComparison().isEqualTo(author);
@@ -43,7 +43,7 @@ public class AuthorDaoJdbcTest {
 
     @Test
     public void whenNoAuthorsThenGetAllReturnsEmptyList() {
-        List<Author> authors = authorDaoJdbc.authors();
+        List<Author> authors = authorRepositoryJpa.authors();
         assertThat(authors).hasSize(0);
     }
 
@@ -55,10 +55,10 @@ public class AuthorDaoJdbcTest {
                 new Author(UUID.randomUUID(), UUID.randomUUID().toString()));
 
         for (Author author : authors){
-            authorDaoJdbc.save(author);
+            authorRepositoryJpa.save(author);
         }
 
-        List<Author> storedAuthors = authorDaoJdbc.authors();
+        List<Author> storedAuthors = authorRepositoryJpa.authors();
 
         assertThat(storedAuthors).hasSize(authors.size());
         for (Author storedAuthor : storedAuthors) {
@@ -73,7 +73,7 @@ public class AuthorDaoJdbcTest {
 
     @Test
     public void whenSavedNullObjThenNPEThrown() {
-        assertThatThrownBy(() -> authorDaoJdbc.save(null))
+        assertThatThrownBy(() -> authorRepositoryJpa.save(null))
                 .isInstanceOf(NullPointerException.class);
     }
 }

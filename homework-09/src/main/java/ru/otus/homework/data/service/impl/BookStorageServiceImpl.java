@@ -2,10 +2,16 @@ package ru.otus.homework.data.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.otus.homework.data.dao.*;
+import org.springframework.transaction.annotation.Transactional;
+import ru.otus.homework.data.dao.AuthorRepository;
+import ru.otus.homework.data.dao.BookRepository;
+import ru.otus.homework.data.dao.GenreRepository;
+import ru.otus.homework.data.entity.Author;
 import ru.otus.homework.data.entity.Book;
+import ru.otus.homework.data.entity.Genre;
 import ru.otus.homework.data.service.BookStorageService;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -14,61 +20,54 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class BookStorageServiceImpl implements BookStorageService {
 
-    private final BookDao bookDao;
-    private final BookAuthorDao bookAuthorDao;
-    private final BookGenreDao bookGenreDao;
+    private final BookRepository bookRepository;
+    private final GenreRepository genreRepository;
+    private final AuthorRepository authorRepository;
 
+    @Override
+    @Transactional
     public Book save(String title, List<UUID> authorsIds, List<UUID> genresIds) {
 
-        Book storedBook = bookDao.save(new Book(UUID.randomUUID(), title));
+        Book book = new Book(UUID.randomUUID(), title);
 
-        connectBookWithAuthors(storedBook.getId(), authorsIds);
+        List<Author> authors = authorRepository.authors(authorsIds);
+        List<Genre> genres = genreRepository.genres(genresIds);
 
-        connectBookWithGenres(storedBook.getId(), genresIds);
+        book.setGenres(new HashSet<>(genres));
+        book.setAuthors(new HashSet<>(authors));
 
-        return bookById(storedBook.getId()).get();
-    }
-
-    private void connectBookWithGenres(UUID bookId, List<UUID> genresIds) {
-        for (UUID genreId : genresIds) {
-            bookGenreDao.saveBookGenreConnection(bookId, genreId);
-        }
-    }
-
-    private void connectBookWithAuthors(UUID bookId, List<UUID> authorsIds) {
-        for (UUID authorId : authorsIds) {
-            bookAuthorDao.saveBookAuthorConnection(bookId, authorId);
-        }
-    }
-
-    public List<Book> books() {
-        return bookDao.books();
-    }
-
-    public Optional<Book> bookById(UUID bookId) {
-        return bookDao.bookById(bookId);
-    }
-
-    public void deleteBookById(UUID bookId){
-        bookAuthorDao.deleteBookAuthorConnection(bookId);
-
-        bookGenreDao.deleteBookGenreConnection(bookId);
-
-        bookDao.deleteById(bookId);
+        return bookRepository.save(book);
     }
 
     @Override
+    public List<Book> books() {
+        return bookRepository.books();
+    }
+
+    @Override
+    public Optional<Book> bookById(UUID bookId) {
+        return bookRepository.bookById(bookId);
+    }
+
+    @Override
+    public boolean deleteBookById(UUID bookId){
+        return bookRepository.deleteById(bookId);
+    }
+
+    @Override
+    @Transactional
     public boolean update(UUID bookId, String newTitle, List<UUID> authorsIds, List<UUID> genresIds) {
-        boolean updated = bookDao.updateTitle(bookId, newTitle);
-        if (!updated) {
-            return false;
-        }
+        Book book = bookRepository.bookById(bookId)
+                .orElseThrow(() -> new RuntimeException("Book not found."));
+        book.setTitle(newTitle);
 
-        bookAuthorDao.deleteBookAuthorConnection(bookId);
-        connectBookWithAuthors(bookId, authorsIds);
+        List<Author> authors = authorRepository.authors(authorsIds);
+        List<Genre> genres = genreRepository.genres(genresIds);
 
-        bookGenreDao.deleteBookGenreConnection(bookId);
-        connectBookWithGenres(bookId, genresIds);
+        book.setGenres(new HashSet<>(genres));
+        book.setAuthors(new HashSet<>(authors));
+
+        bookRepository.save(book);
 
         return true;
     }

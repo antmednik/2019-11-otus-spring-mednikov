@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
+    url: jpa:postgresql://localhost:5432/postgres
     username: postgres
     password: mysecretpassword
     initialization-mode: always

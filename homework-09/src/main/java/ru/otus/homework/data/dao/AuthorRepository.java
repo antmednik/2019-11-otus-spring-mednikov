@@ -6,11 +6,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface AuthorDao {
+public interface AuthorRepository {
 
     Author save(Author author);
 
     List<Author> authors();
 
-    Optional<Author> authorById(UUID id);
+    List<Author> authors(Iterable<UUID> ids);
+
+    Optional<Author> author(UUID id);
 }

@@ -1,10 +1,11 @@
-package ru.otus.homework.data.dao.jdbc;
+package ru.otus.homework.data.dao.jpa;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.otus.homework.data.entity.Book;
 
@@ -16,16 +17,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(SpringExtension.class)
-@JdbcTest
-@Import(BookDaoJdbc.class)
-public class BookDaoJdbcTest {
+@DataJpaTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@Import(BookRepositoryJpa.class)
+public class BookRepositoryJpaTest {
 
     @Autowired
-    private BookDaoJdbc bookDaoJdbc;
+    private BookRepositoryJpa bookRepositoryJpa;
 
     @Test
     public void whenSearchForNonExistingBookThenNotFound(){
-        Optional<Book> book = bookDaoJdbc.bookById(UUID.randomUUID());
+        Optional<Book> book = bookRepositoryJpa.bookById(UUID.randomUUID());
         assertThat(book).isEmpty();
     }
 
@@ -34,9 +36,9 @@ public class BookDaoJdbcTest {
         final UUID bookId = UUID.randomUUID();
         Book book = new Book(bookId);
         book.setTitle(UUID.randomUUID().toString());
-        bookDaoJdbc.save(book);
+        bookRepositoryJpa.save(book);
 
-        Optional<Book> storedBook = bookDaoJdbc.bookById(bookId);
+        Optional<Book> storedBook = bookRepositoryJpa.bookById(bookId);
 
         assertThat(storedBook).isNotEmpty();
         assertThat(storedBook.get()).usingRecursiveComparison().isEqualTo(book);
@@ -44,7 +46,7 @@ public class BookDaoJdbcTest {
 
     @Test
     public void whenNoBooksThenGetAllReturnsEmptyList() {
-        List<Book> books = bookDaoJdbc.books();
+        List<Book> books = bookRepositoryJpa.books();
         assertThat(books).hasSize(0);
     }
 
@@ -56,10 +58,10 @@ public class BookDaoJdbcTest {
                 new Book(UUID.randomUUID(), UUID.randomUUID().toString()));
 
         for (Book book : books){
-            bookDaoJdbc.save(book);
+            bookRepositoryJpa.save(book);
         }
 
-        List<Book> storedBooks = bookDaoJdbc.books();
+        List<Book> storedBooks = bookRepositoryJpa.books();
 
         assertThat(storedBooks).hasSize(books.size());
         for (Book storedBook : storedBooks) {
@@ -74,13 +76,13 @@ public class BookDaoJdbcTest {
 
     @Test
     public void whenSavedNullObjThenNPEThrown() {
-        assertThatThrownBy(() -> bookDaoJdbc.save(null))
+        assertThatThrownBy(() -> bookRepositoryJpa.save(null))
                 .isInstanceOf(NullPointerException.class);
     }
 
     @Test
     public void whenBookNotFoundThenNoUpdateDone() {
-        assertThat(bookDaoJdbc.updateTitle(UUID.randomUUID(), ""))
+        assertThat(bookRepositoryJpa.updateTitle(UUID.randomUUID(), ""))
                 .isFalse();
     }
 
@@ -88,15 +90,15 @@ public class BookDaoJdbcTest {
     public void whenBookFoundThenTitleUpdated() {
         final UUID bookId = UUID.randomUUID();
         Book book = new Book(bookId, UUID.randomUUID().toString());
-        Book savedBook = bookDaoJdbc.save(book);
+        Book savedBook = bookRepositoryJpa.save(book);
 
         assertThat(savedBook).usingRecursiveComparison().isEqualTo(book);
 
         final String newTitle = UUID.randomUUID().toString();
-        boolean updated = bookDaoJdbc.updateTitle(savedBook.getId(), newTitle);
+        boolean updated = bookRepositoryJpa.updateTitle(savedBook.getId(), newTitle);
         assertThat(updated).isTrue();
 
-        Optional<Book> updatedBook = bookDaoJdbc.bookById(book.getId());
+        Optional<Book> updatedBook = bookRepositoryJpa.bookById(book.getId());
 
         assertThat(updatedBook).isNotEmpty();
         assertThat(updatedBook.get().getTitle()).isEqualTo(newTitle);
@@ -104,21 +106,21 @@ public class BookDaoJdbcTest {
 
     @Test
     public void whenNoBookThenNothingToDelete() {
-        assertThat(bookDaoJdbc.deleteById(UUID.randomUUID())).isFalse();
+        assertThat(bookRepositoryJpa.deleteById(UUID.randomUUID())).isFalse();
     }
 
     @Test
     public void whenBookFoundThenItCanBeDeleted() {
         final UUID bookId = UUID.randomUUID();
         Book book = new Book(bookId, UUID.randomUUID().toString());
-        bookDaoJdbc.save(book);
+        bookRepositoryJpa.save(book);
 
-        Optional<Book> savedBook = bookDaoJdbc.bookById(bookId);
+        Optional<Book> savedBook = bookRepositoryJpa.bookById(bookId);
         assertThat(savedBook).isNotEmpty();
 
-        assertThat(bookDaoJdbc.deleteById(bookId)).isTrue();
+        assertThat(bookRepositoryJpa.deleteById(bookId)).isTrue();
 
-        Optional<Book> savedBookAfterDeletion = bookDaoJdbc.bookById(bookId);
+        Optional<Book> savedBookAfterDeletion = bookRepositoryJpa.bookById(bookId);
         assertThat(savedBookAfterDeletion).isEmpty();
     }
 }

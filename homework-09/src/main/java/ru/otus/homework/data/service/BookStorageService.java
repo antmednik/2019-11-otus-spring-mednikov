@@ -14,7 +14,7 @@ public interface BookStorageService {
 
     Optional<Book> bookById(UUID bookId);
 
-    void deleteBookById(UUID bookId);
+    boolean deleteBookById(UUID bookId);
 
     boolean update(UUID bookId, String newTitle, List<UUID> authorsIds, List<UUID> genresIds);
 }

@@ -24,7 +24,7 @@ dependencies {
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
 	}
-	testCompileOnly 'com.h2database:h2:1.4.200'
+	testCompile 'com.h2database:h2:1.4.200'
 	testCompile 'org.assertj:assertj-core:3.13.2'
 }
 

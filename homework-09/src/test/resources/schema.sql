@@ -1,7 +1,7 @@
 drop table if exists book_author;
 drop table if exists book_genre;
-drop table if exists book;
 drop table if exists comment;
+drop table if exists book;
 drop table if exists author;
 drop table if exists genre;
 
@@ -13,7 +13,7 @@ create table book
 
 create table comment
 (
-  id uuid primary key,
+  id uuid primary key ,
   text text not null,
   book_id uuid not null references book(id)
 );
