@@ -33,7 +33,7 @@ public class Book {
             inverseJoinColumns = {@JoinColumn(name = "genre_id")})
     private Set<Genre> genres;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "book")
+    @OneToMany(mappedBy = "book")
     private Set<Comment> comments;
 
     public Book() {

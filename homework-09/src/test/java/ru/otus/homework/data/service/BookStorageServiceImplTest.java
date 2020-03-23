@@ -1,157 +1,102 @@
 package ru.otus.homework.data.service;
 
+import org.jeasy.random.EasyRandom;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.mockito.ArgumentCaptor;
+import ru.otus.homework.data.dao.AuthorRepository;
+import ru.otus.homework.data.dao.BookRepository;
+import ru.otus.homework.data.dao.GenreRepository;
 import ru.otus.homework.data.entity.Author;
 import ru.otus.homework.data.entity.Book;
-import ru.otus.homework.data.entity.Comment;
 import ru.otus.homework.data.entity.Genre;
 import ru.otus.homework.data.service.impl.BookStorageServiceImpl;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class BookStorageServiceImplTest {
 
-    @Autowired
     private BookStorageServiceImpl bookStorageService;
 
-    @Autowired
-    private GenreStorageService genreStorageService;
+    private BookRepository bookRepository;
+    private GenreRepository genreRepository;
+    private AuthorRepository authorRepository;
 
-    @Autowired
-    private AuthorStorageService authorStorageService;
+    private EasyRandom easyRandom = new EasyRandom();
 
-    @Autowired
-    private CommentStorageService commentStorageService;
+    @BeforeEach
+    public void beforeEach() {
+        bookRepository = mock(BookRepository.class);
+        genreRepository = mock(GenreRepository.class);
+        authorRepository = mock(AuthorRepository.class);
 
-    @Test
-    public void whenBookWithGenresAndAuthorsAndCommentsSavedThenFullBookDataLoaded() {
-        Book book = bookStorageService.save(UUID.randomUUID().toString(),
-                Collections.emptyList(), Collections.emptyList());
-
-        Optional<Book> storedBookWrapper = bookStorageService.bookById(book.getId());
-        assertThat(storedBookWrapper).isNotEmpty();
-        Book storedBook = storedBookWrapper.get();
-        assertThat(storedBook).usingRecursiveComparison().isEqualTo(book);
-        assertThat(storedBook.getAuthors()).hasSize(0);
-        assertThat(storedBook.getGenres()).hasSize(0);
-
-        Genre genre1 = genreStorageService.save(UUID.randomUUID().toString());
-        Genre genre2 = genreStorageService.save(UUID.randomUUID().toString());
-        Genre genre3 = genreStorageService.save(UUID.randomUUID().toString());
-
-        Author author1 = authorStorageService.save(UUID.randomUUID().toString());
-        Author author2 = authorStorageService.save(UUID.randomUUID().toString());
-
-        Comment comment1 = commentStorageService.save(UUID.randomUUID().toString(), book);
-        Comment comment2 = commentStorageService.save(UUID.randomUUID().toString(), book);
-
-        bookStorageService.update(book.getId(), book.getTitle(),
-            List.of(author1.getId(), author2.getId()),
-            List.of(genre1.getId(), genre2.getId(), genre3.getId()));
-
-        Optional<Book> storedFinalBookWrapper = bookStorageService.bookById(book.getId());
-        assertThat(storedFinalBookWrapper).isNotEmpty();
-        Book storedFinalBook = storedFinalBookWrapper.get();
-
-        book.getGenres().add(genre1);
-        book.getGenres().add(genre2);
-        book.getGenres().add(genre3);
-
-        book.getAuthors().add(author1);
-        book.getAuthors().add(author2);
-
-        book.getComments().add(comment1);
-        book.getComments().add(comment2);
-
-        assertThat(storedFinalBook).usingRecursiveComparison().isEqualTo(book);
+        bookStorageService = new BookStorageServiceImpl(bookRepository,
+                genreRepository, authorRepository);
     }
 
     @Test
-    public void whenBookWithGenresAndAuthorsSavedThenGenreAndAuthorDeletedAndLoadedBookDataChanged() {
-        Genre genre1 = genreStorageService.save(UUID.randomUUID().toString());
-        Genre genre2 = genreStorageService.save(UUID.randomUUID().toString());
+    public void whenBookWithGenresAndAuthorsSavedThenOk() {
+        final String bookTitle = UUID.randomUUID().toString();
+        final List<UUID> authorIds = List.of(UUID.randomUUID());
+        final List<UUID> genreIds = List.of(UUID.randomUUID());
+        final List<Author> authors = List.of(easyRandom.nextObject(Author.class));
+        final List<Genre> genres = List.of(easyRandom.nextObject(Genre.class));
 
-        Author author1 = authorStorageService.save(UUID.randomUUID().toString());
-        Author author2 = authorStorageService.save(UUID.randomUUID().toString());
+        when(genreRepository.genres(genreIds)).thenReturn(genres);
+        when(authorRepository.authors(authorIds)).thenReturn(authors);
 
-        Book book = bookStorageService.save(UUID.randomUUID().toString(),
-                List.of(author1.getId(), author2.getId()),
-                List.of(genre1.getId(), genre2.getId()));
+        Book book = bookStorageService.save(bookTitle, authorIds, genreIds);
 
-        Optional<Book> storedBookWrapper = bookStorageService.bookById(book.getId());
-        assertThat(storedBookWrapper).isNotEmpty();
-        Book storedBook = storedBookWrapper.get();
-        assertThat(storedBook).usingRecursiveComparison().isEqualTo(book);
+        ArgumentCaptor<Book> argumentCaptor = ArgumentCaptor.forClass(Book.class);
+        verify(bookRepository, times(1))
+                .save(argumentCaptor.capture());
 
-        boolean updated = bookStorageService.update(book.getId(), book.getTitle(),
-                List.of(author2.getId()),
-                List.of(genre1.getId()));
-        assertThat(updated).isTrue();
+        var savedBook = argumentCaptor.getValue();
 
-        book.setGenres(Set.of(genre1));
-        book.setAuthors(Set.of(author2));
+        assertThat(savedBook.getTitle()).isEqualTo(bookTitle);
+        assertThat(savedBook.getGenres()).containsExactlyInAnyOrderElementsOf(genres);
+        assertThat(savedBook.getAuthors()).containsExactlyInAnyOrderElementsOf(authors);
 
-        Optional<Book> storedBookAfterDeletionsWrapper = bookStorageService.bookById(book.getId());
-        assertThat(storedBookAfterDeletionsWrapper).isNotEmpty();
-        Book storedBookAfterDeletions = storedBookAfterDeletionsWrapper.get();
-        assertThat(storedBookAfterDeletions).usingRecursiveComparison().isEqualTo(book);
+        verify(authorRepository, times(1)).authors(authorIds);
+        verify(genreRepository, times(1)).genres(genreIds);
     }
 
     @Test
-    public void whenNoBooksStoredThenEmptyListLoaded() {
-        List<Book> books = bookStorageService.books();
-        assertThat(books).hasSize(0);
-    }
+    public void whenBookWithGenresAndAuthorsUpdatedThenOk() {
+        final UUID bookId = UUID.randomUUID();
+        final String bookTitle = UUID.randomUUID().toString();
+        final List<UUID> authorIds = List.of(UUID.randomUUID());
+        final List<UUID> genreIds = List.of(UUID.randomUUID());
+        final List<Author> authors = List.of(easyRandom.nextObject(Author.class));
+        final List<Genre> genres = List.of(easyRandom.nextObject(Genre.class));
+        final Book book = easyRandom.nextObject(Book.class);
 
-    @Test
-    public void whenTwoBooksStoredThenTwoBooksLoaded() {
-        Genre genre1 = genreStorageService.save(UUID.randomUUID().toString());
-        Genre genre2 = genreStorageService.save(UUID.randomUUID().toString());
+        when(bookRepository.bookById(bookId)).thenReturn(Optional.of(book));
 
-        Author author1 = authorStorageService.save(UUID.randomUUID().toString());
-        Author author2 = authorStorageService.save(UUID.randomUUID().toString());
+        when(genreRepository.genres(genreIds)).thenReturn(genres);
+        when(authorRepository.authors(authorIds)).thenReturn(authors);
 
-        Book book1 = bookStorageService.save(UUID.randomUUID().toString(),
-                List.of(author1.getId()),
-                List.of(genre1.getId(), genre2.getId()));
-        Book book2 = bookStorageService.save(UUID.randomUUID().toString(),
-                List.of(author1.getId(), author2.getId()),
-                List.of(genre1.getId()));
+        bookStorageService.update(bookId, bookTitle, authorIds, genreIds);
 
-        List<Book> books = List.of(book1, book2);
+        verify(bookRepository, times(1))
+                .bookById(bookId);
 
-        List<Book> storedBooks = bookStorageService.books();
-        assertThat(storedBooks).hasSize(books.size());
+        ArgumentCaptor<Book> argumentCaptor = ArgumentCaptor.forClass(Book.class);
+        verify(bookRepository, times(1))
+                .save(argumentCaptor.capture());
 
-        for (Book storedBook : storedBooks) {
-            var book = books.stream().filter(b -> b.getId().equals(storedBook.getId())).findFirst();
-            assertThat(book).isNotEmpty();
-            assertThat(book.get()).usingRecursiveComparison().isEqualTo(storedBook);
-        }
-    }
+        var savedBook = argumentCaptor.getValue();
 
-    @Test
-    public void whenBookStoredThenAfterDeleteNoBook() {
-        Book book = bookStorageService.save(UUID.randomUUID().toString(),
-                Collections.emptyList(), Collections.emptyList());
+        assertThat(savedBook.getTitle()).isEqualTo(bookTitle);
+        assertThat(savedBook.getGenres()).containsExactlyInAnyOrderElementsOf(genres);
+        assertThat(savedBook.getAuthors()).containsExactlyInAnyOrderElementsOf(authors);
 
-        var storedBook = bookStorageService.bookById(book.getId());
-        assertThat(storedBook).isNotEmpty();
-
-        var deletionResult = bookStorageService.deleteBookById(book.getId());
-        assertThat(deletionResult).isTrue();
-
-        var storedBookAfterDeletion = bookStorageService.bookById(book.getId());
-        assertThat(storedBookAfterDeletion).isEmpty();
+        verify(authorRepository, times(1)).authors(authorIds);
+        verify(genreRepository, times(1)).genres(genreIds);
     }
 }

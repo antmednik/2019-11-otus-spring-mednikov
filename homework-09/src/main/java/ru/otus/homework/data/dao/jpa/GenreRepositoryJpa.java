@@ -44,13 +44,6 @@ public class GenreRepositoryJpa implements GenreRepository {
 
     @Override
     public Optional<Genre> genre(UUID id) {
-        var query = em.createQuery("select e from Genre e where e.id = :id",
-                Genre.class);
-        query.setParameter("id", id);
-        try {
-            return Optional.of(query.getSingleResult());
-        } catch (NoResultException ex) {
-            return Optional.empty();
-        }
+        return Optional.ofNullable(em.find(Genre.class, id));
     }
 }

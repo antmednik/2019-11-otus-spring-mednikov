@@ -6,7 +6,5 @@ import ru.otus.homework.data.entity.Comment;
 import java.util.List;
 
 public interface CommentStorageService {
-    List<Comment> commentsByBook(Book book);
-
     Comment save(String text, Book book);
 }

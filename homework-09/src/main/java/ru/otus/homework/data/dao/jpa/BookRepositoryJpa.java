@@ -19,7 +19,6 @@ public class BookRepositoryJpa implements BookRepository {
     private EntityManager em;
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Book save(Book book) {
         if (book.getId() == null) {
             em.persist(book);
@@ -30,7 +29,6 @@ public class BookRepositoryJpa implements BookRepository {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Optional<Book> bookById(UUID id) {
         return Optional.ofNullable(em.find(Book.class, id));
     }
@@ -42,23 +40,26 @@ public class BookRepositoryJpa implements BookRepository {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public boolean updateTitle(UUID bookId, String newTitle) {
-        var query = em.createQuery(
-                "update Book set title = :title where id = :id");
-        query.setParameter("id", bookId);
-        query.setParameter("title", newTitle);
-        return query.executeUpdate() == 1;
+        var book = em.find(Book.class, bookId);
+        if (book == null) {
+            return false;
+        }
+
+        book.setTitle(newTitle);
+        em.merge(book);
+
+        return true;
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public boolean deleteById(UUID id) {
-        var query = em.createQuery(
-                "delete Book where id = :id");
-        query.setParameter("id", id);
-        return query.executeUpdate() == 1;
+        var book = em.find(Book.class, id);
+        if (book == null) {
+            return false;
+        }
 
-        //em.createQuery()
+        em.remove(book);
+        return true;
     }
 }

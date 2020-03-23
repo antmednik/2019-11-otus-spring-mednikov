@@ -8,7 +8,6 @@ import ru.otus.homework.data.entity.Book;
 import ru.otus.homework.data.entity.Comment;
 import ru.otus.homework.data.service.CommentStorageService;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -17,11 +16,6 @@ import java.util.UUID;
 public class CommentStorageServiceImpl implements CommentStorageService {
 
     private final CommentRepository commentRepository;
-
-    @Override
-    public List<Comment> commentsByBook(Book book) {
-        return commentRepository.commentsByBook(book.getId());
-    }
 
     @Override
     public Comment save(String text, Book book) {

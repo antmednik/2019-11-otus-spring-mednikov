@@ -26,6 +26,7 @@ dependencies {
 	}
 	testCompile 'com.h2database:h2:1.4.200'
 	testCompile 'org.assertj:assertj-core:3.13.2'
+	testImplementation 'org.jeasy:easy-random-core:4.0.0'
 }
 
 test {

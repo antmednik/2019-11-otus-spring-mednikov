@@ -5,7 +5,6 @@ import ru.otus.homework.data.dao.AuthorRepository;
 import ru.otus.homework.data.entity.Author;
 
 import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Optional;
@@ -43,13 +42,6 @@ public class AuthorRepositoryJpa implements AuthorRepository {
 
     @Override
     public Optional<Author> author(UUID id) {
-        var query = em.createQuery("select e from Author e where e.id = :id",
-                Author.class);
-        query.setParameter("id", id);
-        try {
-            return Optional.of(query.getSingleResult());
-        } catch (NoResultException ex) {
-            return Optional.empty();
-        }
+        return Optional.ofNullable(em.find(Author.class, id));
     }
 }

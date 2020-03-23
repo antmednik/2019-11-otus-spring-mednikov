@@ -28,12 +28,6 @@ public class CommentRepositoryJpaTest {
     private BookRepositoryJpa bookRepositoryJpa;
 
     @Test
-    public void whenSearchForNonExistingCommentsThenNotFound(){
-        List<Comment> comments = commentRepositoryJpa.commentsByBook(UUID.randomUUID());
-        assertThat(comments).isEmpty();
-    }
-
-    @Test
     public void whenCommentSavedThenLoadedById() {
         final UUID commentId = UUID.randomUUID();
         final UUID bookId = UUID.randomUUID();
@@ -43,13 +37,21 @@ public class CommentRepositoryJpaTest {
         assertThat(savedBook).isNotNull();
 
         var comment = new Comment(commentId, UUID.randomUUID().toString(), savedBook);
-        var savedComment = commentRepositoryJpa.save(comment);
-        assertThat(savedComment).isNotNull();
 
-        List<Comment> storedComments = commentRepositoryJpa.commentsByBook(bookId);
+        commentRepositoryJpa.save(comment);
+
+        savedBook.getComments().add(comment);
+
+        bookRepositoryJpa.save(savedBook);
+
+        var storedBook = bookRepositoryJpa.bookById(savedBook.getId())
+                .orElseThrow();
+
+        var storedComments = storedBook.getComments();
 
         assertThat(storedComments).hasSize(1);
-        assertThat(storedComments.get(0)).usingRecursiveComparison().isEqualTo(comment);
+        assertThat(storedComments.stream().findFirst().get())
+                .usingRecursiveComparison().isEqualTo(comment);
     }
 
     @Test
@@ -67,9 +69,12 @@ public class CommentRepositoryJpaTest {
 
         for (var comment : comments){
             commentRepositoryJpa.save(comment);
+            savedBook.getComments().add(comment);
         }
+        bookRepositoryJpa.save(savedBook);
 
-        List<Comment> storedComments = commentRepositoryJpa.commentsByBook(bookId);
+        var storedComments = bookRepositoryJpa.bookById(savedBook.getId())
+                .orElseThrow().getComments();
 
         assertThat(storedComments).hasSize(comments.size());
         for (var storedComment : storedComments) {
