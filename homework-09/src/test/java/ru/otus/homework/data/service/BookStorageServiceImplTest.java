@@ -4,8 +4,10 @@ import org.jeasy.random.EasyRandom;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import ru.otus.homework.data.dao.AuthorRepository;
 import ru.otus.homework.data.dao.BookRepository;
+import ru.otus.homework.data.dao.CommentRepository;
 import ru.otus.homework.data.dao.GenreRepository;
 import ru.otus.homework.data.entity.Author;
 import ru.otus.homework.data.entity.Book;
@@ -46,11 +48,12 @@ public class BookStorageServiceImplTest {
         final List<UUID> genreIds = List.of(UUID.randomUUID());
         final List<Author> authors = List.of(easyRandom.nextObject(Author.class));
         final List<Genre> genres = List.of(easyRandom.nextObject(Genre.class));
+        final List<String> comments = List.of(UUID.randomUUID().toString());
 
         when(genreRepository.genres(genreIds)).thenReturn(genres);
         when(authorRepository.authors(authorIds)).thenReturn(authors);
 
-        Book book = bookStorageService.save(bookTitle, authorIds, genreIds);
+        Book book = bookStorageService.save(bookTitle, authorIds, genreIds, comments);
 
         ArgumentCaptor<Book> argumentCaptor = ArgumentCaptor.forClass(Book.class);
         verify(bookRepository, times(1))

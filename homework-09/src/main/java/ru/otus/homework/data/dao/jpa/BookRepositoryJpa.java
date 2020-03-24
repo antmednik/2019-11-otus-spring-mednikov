@@ -40,19 +40,6 @@ public class BookRepositoryJpa implements BookRepository {
     }
 
     @Override
-    public boolean updateTitle(UUID bookId, String newTitle) {
-        var book = em.find(Book.class, bookId);
-        if (book == null) {
-            return false;
-        }
-
-        book.setTitle(newTitle);
-        em.merge(book);
-
-        return true;
-    }
-
-    @Override
     public boolean deleteById(UUID id) {
         var book = em.find(Book.class, id);
         if (book == null) {

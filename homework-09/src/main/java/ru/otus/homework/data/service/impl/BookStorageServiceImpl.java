@@ -5,13 +5,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.homework.data.dao.AuthorRepository;
 import ru.otus.homework.data.dao.BookRepository;
+import ru.otus.homework.data.dao.CommentRepository;
 import ru.otus.homework.data.dao.GenreRepository;
 import ru.otus.homework.data.entity.Author;
 import ru.otus.homework.data.entity.Book;
+import ru.otus.homework.data.entity.Comment;
 import ru.otus.homework.data.entity.Genre;
 import ru.otus.homework.data.service.BookStorageService;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +26,8 @@ public class BookStorageServiceImpl implements BookStorageService {
 
     @Override
     @Transactional
-    public Book save(String title, List<UUID> authorsIds, List<UUID> genresIds) {
+    public Book save(String title, List<UUID> authorsIds,
+                     List<UUID> genresIds, List<String> comments) {
 
         Book book = new Book(UUID.randomUUID(), title);
 
@@ -32,6 +36,9 @@ public class BookStorageServiceImpl implements BookStorageService {
 
         book.setGenres(new HashSet<>(genres));
         book.setAuthors(new HashSet<>(authors));
+        book.setComments(comments.stream()
+                .map(t -> new Comment(UUID.randomUUID(), t, book))
+                .collect(Collectors.toSet()));
 
         return bookRepository.save(book);
     }

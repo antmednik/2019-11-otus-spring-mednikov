@@ -82,22 +82,16 @@ public class BookRepositoryJpaTest {
     }
 
     @Test
-    public void whenBookNotFoundThenNoUpdateDone() {
-        assertThat(bookRepositoryJpa.updateTitle(UUID.randomUUID(), ""))
-                .isFalse();
-    }
-
-    @Test
     public void whenBookFoundThenTitleUpdated() {
         final UUID bookId = UUID.randomUUID();
+        final String newTitle = UUID.randomUUID().toString();
+
         Book book = new Book(bookId, UUID.randomUUID().toString());
         Book savedBook = bookRepositoryJpa.save(book);
 
         assertThat(savedBook).usingRecursiveComparison().isEqualTo(book);
 
-        final String newTitle = UUID.randomUUID().toString();
-        boolean updated = bookRepositoryJpa.updateTitle(savedBook.getId(), newTitle);
-        assertThat(updated).isTrue();
+        savedBook.setTitle(newTitle);
 
         Optional<Book> updatedBook = bookRepositoryJpa.bookById(book.getId());
 

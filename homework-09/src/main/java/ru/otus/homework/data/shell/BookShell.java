@@ -7,11 +7,9 @@ import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 import ru.otus.homework.data.entity.Book;
 import ru.otus.homework.data.service.BookStorageService;
+import ru.otus.homework.data.service.CommentStorageService;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @ShellComponent
@@ -20,6 +18,7 @@ import java.util.stream.Collectors;
 public class BookShell {
 
     private final BookStorageService bookService;
+    private final CommentStorageService commentStorageService;
 
     @ShellMethod(key = "books", value = "load all books")
     public void books() {
@@ -35,6 +34,12 @@ public class BookShell {
         System.out.println(book);
     }
 
+    @ShellMethod(key = "book-comments", value = "load book comments by book id")
+    public void bookCommentsByBookId(@ShellOption("--bookId") UUID bookId) {
+        var comments = commentStorageService.commentsByBook(bookId);
+        System.out.println(comments);
+    }
+
     @ShellMethod(key = "book-save", value = "save new book")
     public void saveBook(@ShellOption("--title") String title,
                          @ShellOption(value = "--authors-ids",
@@ -42,9 +47,15 @@ public class BookShell {
                          String rawAuthorsIds,
                          @ShellOption(value = "--genres-ids",
                                  help = "example value: <uuid_1>,<uuid_2>,<uuid_3>,...")
-                         String rawGenresIds) {
+                         String rawGenresIds,
+                         @ShellOption(value = "--comments",
+                                 help = "example value: <comment_1>|<comment_2>|<comment_3>|...")
+                         String rawComments) {
 
-        bookService.save(title, parsedUuidList(rawAuthorsIds), parsedUuidList(rawGenresIds));
+        bookService.save(title,
+                parsedUuidList(rawAuthorsIds),
+                parsedUuidList(rawGenresIds),
+                Arrays.asList(rawComments.split("|")));
     }
 
     @ShellMethod(key = "book-edit-title", value = "edit book title")

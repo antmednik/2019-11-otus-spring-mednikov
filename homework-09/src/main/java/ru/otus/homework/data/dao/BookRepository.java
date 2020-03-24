@@ -13,7 +13,5 @@ public interface BookRepository {
 
     List<Book> books();
 
-    boolean updateTitle(UUID bookId, String newTitle);
-
     boolean deleteById(UUID id);
 }

@@ -11,7 +11,6 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class AuthorStorageServiceImpl implements ru.otus.homework.data.service.AuthorStorageService {
 
     private final AuthorRepository authorRepository;
@@ -22,6 +21,7 @@ public class AuthorStorageServiceImpl implements ru.otus.homework.data.service.A
     }
 
     @Override
+    @Transactional
     public Author save(String name) {
         Author author = new Author(UUID.randomUUID(), name);
         return authorRepository.save(author);

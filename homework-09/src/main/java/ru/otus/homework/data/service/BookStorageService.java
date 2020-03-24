@@ -8,7 +8,8 @@ import java.util.UUID;
 
 public interface BookStorageService {
 
-    Book save(String title, List<UUID> authorsIds, List<UUID> genresIds);
+    Book save(String title, List<UUID> authorsIds, List<UUID> genresIds,
+              List<String> comments);
 
     List<Book> books();
 
