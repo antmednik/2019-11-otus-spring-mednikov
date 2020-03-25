@@ -6,21 +6,21 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ru.otus.homework.hw28.domain.material.MaterialType;
-import ru.otus.homework.hw28.infrastructure.ForestLogistic;
+import ru.otus.homework.hw28.infrastructure.logisitc.base.BatchShippingLogistic;
 
 @Service
 public class Forest {
 
     private static final Logger LOG = LoggerFactory.getLogger(Forest.class);
 
-    private final ForestLogistic forestLogistic;
+    private final BatchShippingLogistic shippingLogistic;
     private final int maxWoodPerformance;
     private final MaterialSource source;
 
-    public Forest(ForestLogistic forestLogistic,
+    public Forest(BatchShippingLogistic forestOuterShippingLogistic,
                   @Value("${forest.wood.performance.max:10}") int maxWoodPerformance,
                   MaterialSource source) {
-        this.forestLogistic = forestLogistic;
+        this.shippingLogistic = forestOuterShippingLogistic;
         this.maxWoodPerformance = maxWoodPerformance;
         this.source = source;
     }
@@ -32,6 +32,6 @@ public class Forest {
 
         LOG.info("Wood shipment of {} piece(s)", pieces.size());
 
-        forestLogistic.ship(pieces);
+        shippingLogistic.ship(pieces);
     }
 }

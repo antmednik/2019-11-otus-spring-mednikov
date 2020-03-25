@@ -11,4 +11,11 @@ public class MaterialPiece {
     public MaterialType getType() {
         return type;
     }
+
+    @Override
+    public String toString() {
+        return "MaterialPiece{" +
+                "type=" + type +
+                '}';
+    }
 }

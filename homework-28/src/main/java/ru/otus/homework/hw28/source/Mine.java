@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ru.otus.homework.hw28.domain.material.MaterialPiece;
 import ru.otus.homework.hw28.domain.material.MaterialType;
-import ru.otus.homework.hw28.infrastructure.MineLogistic;
+import ru.otus.homework.hw28.infrastructure.logisitc.MineLogistic;
 
 import java.util.ArrayList;
 
@@ -31,7 +31,7 @@ public class Mine {
         this.materialSource = materialSource;
     }
 
-    @Scheduled(fixedDelayString = "${mine.shipment.delay:8000}")
+    @Scheduled(fixedDelayString = "${mine.shipment.delay:1000}")
     public void mine() {
 
         var coalPieces = materialSource.provide(MaterialType.COAL, maxCoalPerformance);
