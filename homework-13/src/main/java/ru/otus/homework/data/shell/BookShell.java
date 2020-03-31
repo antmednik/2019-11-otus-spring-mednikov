@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
+import ru.otus.homework.data.entity.mongo.Author;
 import ru.otus.homework.data.entity.mongo.Book;
 import ru.otus.homework.data.service.BookStorageService;
 
@@ -17,6 +18,19 @@ import java.util.stream.Collectors;
 public class BookShell {
 
     private final BookStorageService bookService;
+
+    @ShellMethod(key = "authors-with-books", value = "load all authors with books")
+    public void authorsWithBooks() {
+        var books = bookService.books();
+        Map<Author, List<Book>> authorToBooks = new HashMap<>();
+        for (Book book : books) {
+            for (Author author : book.getAuthors()) {
+                authorToBooks.computeIfAbsent(author, (k) -> new ArrayList<>())
+                        .add(book);
+            }
+        }
+        System.out.println(authorToBooks);
+    }
 
     @ShellMethod(key = "books", value = "load all books")
     public void books() {
